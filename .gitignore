@@ -1,0 +1,23 @@
+# macOS
+.DS_Store
+
+# JetBrains / PhpStorm
+.idea/
+
+# Logs
+*.log
+
+# Temp
+*.tmp
+*.temp
+
+# Build / release artifacts
+*.zip
+releases/
+dist/
+
+# Node
+node_modules/
+
+# Composer
+vendor/
