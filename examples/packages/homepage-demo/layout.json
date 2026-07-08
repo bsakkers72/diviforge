@@ -1,0 +1,34 @@
+{
+  "title": "Demo Homepage",
+  "sections": [
+    {
+      "label": "Hero",
+      "class": "df-demo-hero",
+      "rows": [
+        {
+          "columns": [
+            {
+              "modules": [
+                {"type": "text", "content": "<h1>Build professional Divi pages with AI.</h1><p>This demo package validates the DiviForge Package Specification v1.0 workflow.</p>"},
+                {"type": "button", "text": "Start building", "url": "#"}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Features",
+      "class": "df-demo-features",
+      "rows": [
+        {
+          "columns": [
+            {"modules": [{"type": "text", "content": "<h2>Prompt</h2><p>Start with a clear prompt.</p>"}]},
+            {"modules": [{"type": "text", "content": "<h2>Inspect</h2><p>Validate the package before import.</p>"}]},
+            {"modules": [{"type": "text", "content": "<h2>Import</h2><p>Create a draft page in Divi.</p>"}]}
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "title": "Demo Homepage",
+  "version": "1.0.0",
+  "builder": "divi",
+  "package_format": "diviforge-package-v1",
+  "description": "Minimal demo package for DiviForge Sprint 001."
+}

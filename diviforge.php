@@ -1,0 +1,31 @@
+<?php
+/**
+ * Plugin Name: DiviForge
+ * Plugin URI: https://barrysakkers.com
+ * Description: AI-powered workflow toolkit for building professional Divi pages from structured packages, prompts, and guided onboarding.
+ * Version: 3.4.0
+ * Author: Barry Sakkers
+ * Text Domain: diviforge
+ * Domain Path: /languages
+ * Requires at least: 6.0
+ * Requires PHP: 7.4
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+define('DIVIFORGE_VERSION', '3.4.0');
+define('DIVIFORGE_FILE', __FILE__);
+define('DIVIFORGE_PATH', plugin_dir_path(__FILE__));
+define('DIVIFORGE_URL', plugin_dir_url(__FILE__));
+
+require_once DIVIFORGE_PATH . 'includes/class-diviforge.php';
+
+register_activation_hook(__FILE__, array('DiviForge', 'activate'));
+register_deactivation_hook(__FILE__, array('DiviForge', 'deactivate'));
+
+add_action('plugins_loaded', function () {
+    load_plugin_textdomain('diviforge', false, dirname(plugin_basename(__FILE__)) . '/languages');
+    DiviForge::instance();
+});
