@@ -1,0 +1,62 @@
+<?php
+namespace DiviForge\Admin;
+
+if (!defined('ABSPATH')) { exit; }
+
+use DiviForge\Repository\AiJobRepositoryInterface;
+
+final class AiJobsScreen {
+    private AiJobRepositoryInterface $jobs;
+
+    public function __construct(AiJobRepositoryInterface $jobs) {
+        $this->jobs = $jobs;
+    }
+
+    public function register(): void {
+        add_action('admin_menu', array($this, 'menu'));
+    }
+
+    public function menu(): void {
+        add_submenu_page(
+            'diviforge',
+            __('AI Request Log', 'diviforge'),
+            __('AI Request Log', 'diviforge'),
+            'manage_options',
+            'diviforge-ai-log',
+            array($this, 'render')
+        );
+    }
+
+    public function render(): void {
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('You are not allowed to view this page.', 'diviforge'));
+        }
+
+        $jobs = $this->jobs->all(50);
+
+        echo '<div class="df-wrap">';
+        echo '<p class="df-kicker">' . esc_html__('Core AI Engine', 'diviforge') . '</p>';
+        echo '<h1>' . esc_html__('AI Request Log', 'diviforge') . '</h1>';
+        echo '<p>' . esc_html__('Every request handled by the DiviForge AI module, with provider, model, status, token and cost tracking.', 'diviforge') . '</p>';
+
+        if (!$jobs) {
+            echo '<div class="df-card df-empty-state"><span class="dashicons dashicons-update"></span><h2>' . esc_html__('No AI requests logged yet', 'diviforge') . '</h2><p>' . esc_html__('Requests submitted through a registered AI provider will appear here.', 'diviforge') . '</p></div>';
+            echo '</div>';
+            return;
+        }
+
+        echo '<div class="df-ai-job-list">';
+        foreach ($jobs as $job) {
+            echo '<article class="df-ai-job-card is-' . esc_attr($job->status()) . '">';
+            echo '<div>';
+            echo '<span class="df-status-pill">' . esc_html($job->status()) . '</span>';
+            echo '<h3>' . esc_html($job->provider() . ' · ' . $job->model()) . '</h3>';
+            echo '<p>' . esc_html(wp_trim_words($job->prompt(), 24)) . '</p>';
+            echo '<small>' . esc_html($job->tokens() . ' tokens · $' . number_format($job->cost(), 4) . ' · ' . $job->createdAt()) . '</small>';
+            echo '</div>';
+            echo '</article>';
+        }
+        echo '</div>';
+        echo '</div>';
+    }
+}
