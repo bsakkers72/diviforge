@@ -138,5 +138,19 @@
       })
       .fail(function(){ $('#df-inspector-result').html('<div class="df-card df-error">The package could not be inspected.</div>'); });
     });
+
+    $(document).on('click', '.df-ai-generate-btn', function(){
+      var $overlay = $(
+        '<div class="df-ai-loading-overlay">' +
+          '<div class="df-ai-loading-card">' +
+            '<span class="dashicons dashicons-superhero df-ai-loading-icon"></span>' +
+            '<h3>Bezig met genereren via AI…</h3>' +
+            '<p>Dit kan tot een minuut duren. De pagina wordt automatisch bijgewerkt zodra de AI klaar is.</p>' +
+          '</div>' +
+        '</div>'
+      );
+      $('body').append($overlay);
+      requestAnimationFrame(function(){ $overlay.addClass('is-visible'); });
+    });
   });
 })(jQuery);
