@@ -28,6 +28,12 @@ final class Bootstrap {
         $events = $this->container->get(EventDispatcher::class);
         $events->action('core_booted', $this->container);
 
+        if (is_admin()) {
+            (new \DiviForge\Admin\AiJobsScreen(
+                $this->container->get(\DiviForge\Repository\AiJobRepositoryInterface::class)
+            ))->register();
+        }
+
         // Keep the current legacy plugin entrypoint active while the new architecture is introduced gradually.
         if (class_exists('DiviForge')) {
             \DiviForge::instance();
