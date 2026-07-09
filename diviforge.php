@@ -28,6 +28,7 @@ require_once DIVIFORGE_PATH . 'includes/class-diviforge.php';
 
 register_activation_hook(__FILE__, array('DiviForge', 'activate'));
 register_activation_hook(__FILE__, array('DiviForge\\Core\\Lifecycle', 'activate'));
+register_activation_hook(__FILE__, array('DiviForge\\Infrastructure\\Database\\AiJobsTable', 'install'));
 register_deactivation_hook(__FILE__, array('DiviForge', 'deactivate'));
 register_deactivation_hook(__FILE__, array('DiviForge\\Core\\Lifecycle', 'deactivate'));
 

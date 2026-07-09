@@ -22,5 +22,7 @@ final class ServiceRegistry {
         $this->container->set(EventDispatcher::class, function () {
             return new EventDispatcher();
         });
+
+        (new \DiviForge\AI\AiServiceProvider($this->container))->register();
     }
 }
