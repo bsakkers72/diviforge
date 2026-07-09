@@ -43,8 +43,11 @@ The WordPress-native AI foundation is in place under `src/AI`, `src/Repository` 
 - AI jobs repository — done (`AiJobRepositoryInterface` / `AiJobRepository`)
 - AI database migration — done (`AiJobsTable`, `wp_diviforge_ai_jobs`)
 - AI provider contracts — done (`AiProviderInterface`, `AiProviderRegistry`, no concrete providers yet)
-- AI Jobs admin screen — open decision: rewire the existing legacy `diviforge-ai-jobs` screen to read from the new repository, or ship a new screen. Not started.
+- AI Jobs admin screen — shipped as a new page ("AI Request Log", `src/Admin/AiJobsScreen`) rather than rewiring the legacy `diviforge-ai-jobs` screen. See [ADR-002](../adr/ADR-002-AI-Jobs-UI.md).
+- OpenAI provider — done (`AI\Provider\OpenAi\OpenAiProvider`, reuses the existing `diviforge_ai_settings` option). See [ADR-003](../adr/ADR-003-OpenAI-Provider.md). No cost calculation yet.
+- AI Preview — a raw prompt/response detail view for one job, not a Divi layout preview. See [ADR-004](../adr/ADR-004-AI-Preview.md).
+- Package Builder — no new code. The handover spec's export requirement is already satisfied by the existing `includes/` package export pipeline. `src/Export`/`src/Packages` stay empty until a concrete new-architecture consumer needs one. See [ADR-005](../adr/ADR-005-Package-Builder.md).
 
 ## Next step
 
-Sprint 002 (AI Jobs UI) and Sprint 003 (OpenAI Provider) build on this foundation — see the repo root `README.md` for the full sprint sequence.
+Roadmap 3.0's five sprints (000-005) are all resolved (implemented or explicitly deferred with a reason). Next work needs a new goal from Barry.
