@@ -24,5 +24,6 @@ final class ServiceRegistry {
         });
 
         (new \DiviForge\AI\AiServiceProvider($this->container))->register();
+        (new \DiviForge\Licensing\LicensingServiceProvider($this->container))->register();
     }
 }
