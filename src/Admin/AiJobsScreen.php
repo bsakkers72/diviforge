@@ -13,7 +13,11 @@ final class AiJobsScreen {
     }
 
     public function register(): void {
-        add_action('admin_menu', array($this, 'menu'));
+        // Priority 20: must run after the legacy DiviForge_Admin::menu() (default
+        // priority 10) registers the top-level "diviforge" menu, otherwise WP's
+        // page-hookname resolution breaks and the page 403s despite $submenu
+        // looking correct - confirmed against a real WP install, not just $submenu.
+        add_action('admin_menu', array($this, 'menu'), 20);
     }
 
     public function menu(): void {
