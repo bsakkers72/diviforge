@@ -3,7 +3,7 @@
  * Plugin Name: DiviForge
  * Plugin URI: https://barrysakkers.com
  * Description: AI-powered workflow toolkit for building professional Divi pages from structured packages, prompts, and guided onboarding.
- * Version: 3.5.0-dev-20260710-0740
+ * Version: 3.5.0-dev-20260710-0800
  * Author: Barry Sakkers
  * Text Domain: diviforge
  * Domain Path: /languages
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('DIVIFORGE_VERSION', '3.5.0-dev-20260710-0740');
+define('DIVIFORGE_VERSION', '3.5.0-dev-20260710-0800');
 define('DIVIFORGE_FILE', __FILE__);
 define('DIVIFORGE_PATH', plugin_dir_path(__FILE__));
 define('DIVIFORGE_URL', plugin_dir_url(__FILE__));
