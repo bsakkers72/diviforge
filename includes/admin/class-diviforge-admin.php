@@ -315,7 +315,7 @@ class DiviForge_Admin {
         $this->header(__('AI Studio', 'diviforge'), __('Roadmap 3.0 continues here: provider-independent AI workflows, prompt building and AI-ready Divi context.', 'diviforge'), 'ai-studio');
         if (!empty($_GET['ai_notice'])) {
             $notice = sanitize_key($_GET['ai_notice']);
-            $msg = $notice === 'saved' ? __('AI settings saved.', 'diviforge') : ($notice === 'exported' ? __('AI package exported and request logged.', 'diviforge') : ($notice === 'ai_success' ? __('AI request completed. Review the response below before importing anything.', 'diviforge') : ($notice === 'ai_error' ? __('AI request failed. Check provider settings and request history.', 'diviforge') : __('AI action completed.', 'diviforge'))));
+            $msg = $notice === 'saved' ? __('AI settings saved.', 'diviforge') : ($notice === 'exported' ? __('AI package exported and request logged.', 'diviforge') : ($notice === 'ai_success' ? __('AI request completed. Review the response below before importing anything.', 'diviforge') : ($notice === 'ai_error' ? __('AI request failed. Check provider settings and request history.', 'diviforge') : ($notice === 'imported' ? __('The AI result was approved and applied to the page.', 'diviforge') : __('AI action completed.', 'diviforge')))));
             echo '<div class="notice notice-success inline"><p>' . esc_html($msg) . '</p></div>';
         }
         $pages = $this->get_all_pages();
@@ -331,11 +331,15 @@ class DiviForge_Admin {
             echo '<option value="' . esc_attr($page->ID) . '">' . esc_html(get_the_title($page->ID) . ' — ' . $page->post_status) . '</option>';
         }
         echo '</select></label>';
-        echo '<p class="df-kicker df-kicker-spaced">' . esc_html__('Template', 'diviforge') . '</p><div class="df-ai-presets">';
+        echo '<p class="df-kicker df-kicker-spaced">' . esc_html__('Template', 'diviforge') . '</p><p class="df-ai-presets-hint">' . esc_html__('Kies een of meer templates. Ze worden samen met je eigen opdracht naar de AI gestuurd.', 'diviforge') . '</p><div class="df-ai-presets">';
         $presets = $this->ai_studio_presets();
         $first = true;
         foreach ($presets as $key => $preset) {
-            echo '<label class="df-ai-preset"><input type="radio" name="ai_preset" value="' . esc_attr($key) . '" ' . checked($first, true, false) . '><strong>' . esc_html($preset['title']) . '</strong><small>' . esc_html($preset['description']) . '</small></label>';
+            echo '<label class="df-ai-preset-card"><input type="checkbox" name="ai_presets[]" value="' . esc_attr($key) . '" ' . checked($first, true, false) . '>';
+            echo '<span class="df-ai-preset-art" style="background:' . esc_attr($preset['art']) . '"><span class="dashicons ' . esc_attr($preset['icon']) . '"></span></span>';
+            echo '<span class="df-ai-preset-body"><strong>' . esc_html($preset['title']) . '</strong><small>' . esc_html($preset['description']) . '</small></span>';
+            echo '<span class="df-ai-preset-check"><span class="dashicons dashicons-yes"></span></span>';
+            echo '</label>';
             $first = false;
         }
         echo '</div>';
@@ -366,28 +370,51 @@ class DiviForge_Admin {
                 'title' => __('Premium redesign', 'diviforge'),
                 'description' => __('Meer wow, sterkere hero, betere visuele hiërarchie.', 'diviforge'),
                 'prompt' => __('Maak een premium redesign van deze pagina met meer wow-effect, betere hero, sterkere visuele hiërarchie, betere spacing en elegantere CTA’s. Behoud het DiviForge package-format.', 'diviforge'),
+                'icon' => 'dashicons-star-filled',
+                'art' => 'linear-gradient(135deg,#4f46e5,#7c3aed)',
             ),
             'conversion' => array(
                 'title' => __('Meer conversie', 'diviforge'),
                 'description' => __('Sterkere CTA’s, duidelijker verhaal en meer vertrouwen.', 'diviforge'),
                 'prompt' => __('Verbeter deze pagina voor conversie. Maak propositie, CTA’s, trust signals, sectievolgorde en microcopy sterker. Lever een nieuw DiviForge package terug.', 'diviforge'),
+                'icon' => 'dashicons-chart-line',
+                'art' => 'linear-gradient(135deg,#059669,#10b981)',
             ),
             'responsive' => array(
                 'title' => __('Responsive polish', 'diviforge'),
                 'description' => __('Focus op mobiel, tablet en spacing.', 'diviforge'),
                 'prompt' => __('Verbeter de responsive ervaring van deze pagina. Optimaliseer mobiele spacing, typografie, knoppen, kaart-layouts en leesbaarheid. Lever layout.json en page.css terug.', 'diviforge'),
+                'icon' => 'dashicons-smartphone',
+                'art' => 'linear-gradient(135deg,#0284c7,#38bdf8)',
             ),
             'seo' => array(
                 'title' => __('SEO & structuur', 'diviforge'),
                 'description' => __('Betere koppen, secties en semantische content.', 'diviforge'),
                 'prompt' => __('Verbeter de SEO-structuur en inhoudelijke opbouw van deze pagina. Maak headings logischer, teksten duidelijker en secties beter scanbaar. Houd de Divi-layout importeerbaar.', 'diviforge'),
+                'icon' => 'dashicons-search',
+                'art' => 'linear-gradient(135deg,#c2410c,#f97316)',
             ),
             'custom' => array(
                 'title' => __('Eigen opdracht', 'diviforge'),
                 'description' => __('Gebruik vooral mijn tekstvak als opdracht.', 'diviforge'),
                 'prompt' => __('Voer de opdracht uit die in het tekstvak staat en lever een nieuw DiviForge package terug.', 'diviforge'),
+                'icon' => 'dashicons-edit',
+                'art' => 'linear-gradient(135deg,#334155,#64748b)',
             ),
         );
+    }
+
+    private function combine_selected_preset_prompts($presets, $selected_keys) {
+        $selected_keys = array_values(array_filter(array_map('sanitize_key', (array) $selected_keys)));
+        $selected_keys = array_intersect($selected_keys, array_keys($presets));
+        if (!$selected_keys) {
+            $selected_keys = array('custom');
+        }
+        $prompts = array();
+        foreach ($selected_keys as $key) {
+            $prompts[] = $presets[$key]['prompt'];
+        }
+        return implode("\n\n", $prompts);
     }
 
 
@@ -500,8 +527,7 @@ class DiviForge_Admin {
         if (!$page || $page->post_type !== 'page') { wp_die(esc_html__('Page not found.', 'diviforge')); }
 
         $presets = $this->ai_studio_presets();
-        $preset_key = !empty($_POST['ai_preset']) ? sanitize_key($_POST['ai_preset']) : 'custom';
-        $preset_prompt = isset($presets[$preset_key]) ? $presets[$preset_key]['prompt'] : $presets['custom']['prompt'];
+        $preset_prompt = $this->combine_selected_preset_prompts($presets, $_POST['ai_presets'] ?? array());
         $request = !empty($_POST['chatgpt_request']) ? sanitize_textarea_field(wp_unslash($_POST['chatgpt_request'])) : '';
         $full_request = trim($preset_prompt . "\n\nAanvullende opdracht van gebruiker:\n" . $request);
         $settings = $this->get_ai_settings();
@@ -573,8 +599,7 @@ class DiviForge_Admin {
         $_POST['_wpnonce'] = wp_create_nonce('diviforge_export_page_package_' . $page_id);
         $_POST['page_id'] = $page_id;
         $presets = $this->ai_studio_presets();
-        $preset_key = !empty($_POST['ai_preset']) ? sanitize_key($_POST['ai_preset']) : 'custom';
-        $preset_prompt = isset($presets[$preset_key]) ? $presets[$preset_key]['prompt'] : $presets['custom']['prompt'];
+        $preset_prompt = $this->combine_selected_preset_prompts($presets, $_POST['ai_presets'] ?? array());
         $request = !empty($_POST['chatgpt_request']) ? sanitize_textarea_field(wp_unslash($_POST['chatgpt_request'])) : '';
         $_POST['chatgpt_request'] = trim($preset_prompt . "\n\nAanvullende opdracht van gebruiker:\n" . $request);
         $page_title = get_the_title($page_id);
@@ -2506,7 +2531,7 @@ class DiviForge_Admin {
         $job['imported_at'] = current_time('Y-m-d H:i:s');
         $this->save_ai_job($job);
         $this->log_ai_request(sprintf(__('AI result imported: %s', 'diviforge'), get_the_title($page_id)), __('Approved from AI Preview and applied to the page.', 'diviforge'), 'imported', $job['model'] ?? '');
-        wp_safe_redirect(add_query_arg(array('page' => 'diviforge-ai-preview', 'job_id' => $job_id, 'ai_notice' => 'imported'), admin_url('admin.php')));
+        wp_safe_redirect(add_query_arg(array('page' => 'diviforge-ai-studio', 'ai_notice' => 'imported'), admin_url('admin.php')));
         exit;
     }
 
