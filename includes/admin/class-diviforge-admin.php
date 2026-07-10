@@ -210,6 +210,9 @@ class DiviForge_Admin {
         }
         if (!empty($_GET['css_reapplied'])) { echo '<div class="notice notice-success inline"><p>' . esc_html__('Stored CSS has been re-applied to Divi Page Custom CSS.', 'diviforge') . '</p></div>'; }
         if (!empty($_GET['page_deleted'])) { echo '<div class="notice notice-success inline"><p>' . esc_html__('The page has been moved to the trash.', 'diviforge') . '</p></div>'; }
+        if (!empty($_GET['df_limit_reached'])) {
+            echo '<div class="notice notice-warning inline"><p>' . esc_html__('DiviForge Free supports up to 3 pages. Upgrade to a license to import more.', 'diviforge') . '</p></div>';
+        }
     }
 
     /**
@@ -1862,6 +1865,15 @@ class DiviForge_Admin {
         $mode = $target_page_id ? 'update' : 'new';
         if ($target_page_id && !current_user_can('edit_post', $target_page_id)) { wp_die(esc_html__('You are not allowed to update this page.', 'diviforge')); }
         $page_title = (!$target_page_id && !empty($_POST['page_title'])) ? sanitize_text_field(wp_unslash($_POST['page_title'])) : '';
+
+        if ($mode === 'new') {
+            $guard = DiviForge\Core\Bootstrap::instance()->container()->get(DiviForge\Licensing\PageLimitGuard::class);
+            if (!$guard->canCreateAnotherPage()) {
+                wp_safe_redirect(admin_url('admin.php?page=diviforge-pages&df_limit_reached=1'));
+                exit;
+            }
+        }
+
         $result = DiviForge_Importer::import_upload($_FILES['package'], $target_page_id, $page_title);
         if (is_wp_error($result)) { wp_die(esc_html($result->get_error_message())); }
         wp_safe_redirect(admin_url('admin.php?page=diviforge-pages&imported=1&mode=' . $mode . '&page_id=' . absint($result['post_id'])));
