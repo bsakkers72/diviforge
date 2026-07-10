@@ -43,9 +43,9 @@ The WordPress-native AI foundation is in place under `src/AI`, `src/Repository` 
 - AI jobs repository — done (`AiJobRepositoryInterface` / `AiJobRepository`)
 - AI database migration — done (`AiJobsTable`, `wp_diviforge_ai_jobs`)
 - AI provider contracts — done (`AiProviderInterface`, `AiProviderRegistry`, no concrete providers yet)
-- AI Jobs admin screen — shipped as a new page ("AI Request Log", `src/Admin/AiJobsScreen`) rather than rewiring the legacy `diviforge-ai-jobs` screen. See [ADR-002](../adr/ADR-002-AI-Jobs-UI.md).
+- AI Jobs admin screen — done, shipped as a new page ("AI Request Log", `src/Admin/AiJobsScreen`) rather than rewiring the legacy `diviforge-ai-jobs` screen. See [ADR-002](../adr/ADR-002-AI-Jobs-UI.md) for why they stay separate.
 - OpenAI provider — done (`AI\Provider\OpenAi\OpenAiProvider`, reuses the existing `diviforge_ai_settings` option). See [ADR-003](../adr/ADR-003-OpenAI-Provider.md). No cost calculation yet.
-- AI Preview — a raw prompt/response detail view for one job, not a Divi layout preview. See [ADR-004](../adr/ADR-004-AI-Preview.md).
+- AI Preview — done, but scoped narrowly: a raw prompt/response detail view for one job (`AiJobsScreen`), not a Divi layout preview. See [ADR-004](../adr/ADR-004-AI-Preview.md).
 - Package Builder — no new code. The handover spec's export requirement is already satisfied by the existing `includes/` package export pipeline. `src/Export`/`src/Packages` stay empty until a concrete new-architecture consumer needs one. See [ADR-005](../adr/ADR-005-Package-Builder.md).
 
 ## Next step
