@@ -341,7 +341,7 @@ class DiviForge_Admin {
         echo '</div>';
         echo '<label class="df-field df-kicker-spaced"><span>' . esc_html__('Vraag aan AI', 'diviforge') . '</span><textarea name="chatgpt_request" rows="7" placeholder="' . esc_attr__('Bijvoorbeeld: Verbeter de hero-slider, gebruik meer premium spacing en behoud de bestaande Divi-structuur.', 'diviforge') . '"></textarea></label>';
         echo '<div class="df-context-box"><strong>' . esc_html__('Context die wordt meegestuurd', 'diviforge') . '</strong><label><input type="checkbox" checked disabled> Builder Tree</label><label><input type="checkbox" checked disabled> Page CSS + CSS analyse</label><label><input type="checkbox" checked disabled> Assets + media manifest</label><label><input type="checkbox" checked disabled> Design tokens</label><label><input type="checkbox" checked disabled> Page metadata + history context</label></div>';
-        echo '<div class="df-ai-action-row"><button class="df-btn df-btn-soft df-ai-submit" type="submit"><span class="dashicons dashicons-download"></span>' . esc_html__('Download AI package', 'diviforge') . '</button><button class="df-btn df-btn-primary df-ai-submit" type="submit" formaction="' . esc_url(admin_url('admin-post.php')) . '" name="action" value="diviforge_ai_improve"><span class="dashicons dashicons-superhero"></span>' . esc_html__('Generate with AI', 'diviforge') . '</button></div>';
+        echo '<div class="df-ai-action-row"><button class="df-btn df-btn-soft df-ai-submit" type="submit"><span class="dashicons dashicons-download"></span>' . esc_html__('Download AI package', 'diviforge') . '</button><button class="df-btn df-btn-primary df-ai-submit df-ai-generate-btn" type="submit" formaction="' . esc_url(admin_url('admin-post.php')) . '" name="action" value="diviforge_ai_improve"><span class="dashicons dashicons-superhero"></span>' . esc_html__('Generate with AI', 'diviforge') . '</button></div>';
         echo '</form>';
         echo '<aside class="df-card df-ai-studio-side"><p class="df-kicker">' . esc_html__('AI provider status', 'diviforge') . '</p><h2>' . esc_html($has_key ? __('Provider configured', 'diviforge') : __('Provider not configured yet', 'diviforge')) . '</h2><p>' . esc_html($has_key ? sprintf(__('Provider: %s · Model: %s. Direct generation with preview is active. Every request creates a reviewable AI job.', 'diviforge'), $this->get_ai_provider_label($settings['provider']), $settings['model']) : __('Configure an AI provider in Settings to prepare direct AI workflows.', 'diviforge')) . '</p><div class="df-ai-next"><h3>' . esc_html__('AI Package Validator', 'diviforge') . '</h3><ul class="df-checks"><li>Builder Tree required</li><li>layout.json required</li><li>page.css exported when available</li><li>AI_REQUEST.json generated</li><li>Package history logged</li></ul><div class="df-quality-score"><span>' . esc_html__('Foundation readiness', 'diviforge') . '</span><strong>82%</strong></div><a class="df-btn df-btn-soft" href="' . esc_url(admin_url('admin.php?page=diviforge-settings')) . '"><span class="dashicons dashicons-admin-generic"></span>' . esc_html__('Open AI settings', 'diviforge') . '</a></div></aside>';
         echo '</div>';
@@ -2125,7 +2125,7 @@ class DiviForge_Admin {
     }
 
     private function update_ai_jobs($jobs) {
-        update_option('diviforge_ai_jobs', array_slice(array_values($jobs), 0, 100), false);
+        update_option('diviforge_ai_jobs', array_slice($jobs, -100, null, true), false);
     }
 
     private function create_ai_job($data) {
@@ -2168,8 +2168,8 @@ class DiviForge_Admin {
 
     private function latest_ai_job_id() {
         $jobs = $this->get_ai_jobs();
-        foreach ($jobs as $id => $job) { return $id; }
-        return '';
+        $id = array_key_last($jobs);
+        return $id !== null ? $id : '';
     }
 
     private function extract_json_from_ai_text($text) {
