@@ -44,7 +44,8 @@ The WordPress-native AI foundation is in place under `src/AI`, `src/Repository` 
 - AI database migration — done (`AiJobsTable`, `wp_diviforge_ai_jobs`)
 - AI provider contracts — done (`AiProviderInterface`, `AiProviderRegistry`, no concrete providers yet)
 - AI Jobs admin screen — done, shipped as a new page ("AI Request Log", `src/Admin/AiJobsScreen`) rather than rewiring the legacy `diviforge-ai-jobs` screen. See [ADR-002](../adr/ADR-002-AI-Jobs-UI.md) for why they stay separate.
+- OpenAI provider — done (`AI\Provider\OpenAi\OpenAiProvider`, reuses the existing `diviforge_ai_settings` option). See [ADR-003](../adr/ADR-003-OpenAI-Provider.md). No cost calculation yet.
 
 ## Next step
 
-Sprint 003 (OpenAI Provider) builds on this foundation — see the repo root `README.md` for the full sprint sequence.
+Sprint 004 (AI Preview) and Sprint 005 (Package Builder) build on this foundation — see the repo root `README.md` for the full sprint sequence.
