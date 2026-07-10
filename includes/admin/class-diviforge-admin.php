@@ -2228,15 +2228,18 @@ class DiviForge_Admin {
                 array('label' => __('Valid JSON', 'diviforge'), 'ok' => false, 'message' => $parsed->get_error_message()),
             ));
         }
+        $layout_present = !empty($parsed['layout']) && is_array($parsed['layout']);
+        $layout_convertible = $layout_present && DiviForge_Importer::layout_to_divi_shortcodes($parsed['layout']) !== '';
+
         $checks = array();
         $checks[] = array('label' => 'manifest', 'ok' => !empty($parsed['manifest']) && is_array($parsed['manifest']), 'message' => __('manifest.json equivalent present', 'diviforge'));
-        $checks[] = array('label' => 'layout', 'ok' => !empty($parsed['layout']) && is_array($parsed['layout']), 'message' => __('layout.json equivalent present', 'diviforge'));
+        $checks[] = array('label' => 'layout', 'ok' => $layout_convertible, 'message' => $layout_convertible ? __('layout.json equivalent present', 'diviforge') : ($layout_present ? __('layout.json is present but could not be converted to a Divi layout (missing divi_content, content or sections)', 'diviforge') : __('layout.json equivalent missing', 'diviforge')));
         $checks[] = array('label' => 'page.css', 'ok' => isset($parsed['page.css']) && is_string($parsed['page.css']), 'message' => __('page CSS present', 'diviforge'));
         $checks[] = array('label' => 'change_summary', 'ok' => !empty($parsed['change_summary']), 'message' => __('change summary present', 'diviforge'));
         $ok_count = 0;
         foreach ($checks as $check) { if (!empty($check['ok'])) { $ok_count++; } }
         $score = (int) round(($ok_count / max(1, count($checks))) * 100);
-        return array('score' => $score, 'ok' => $score >= 50 && !empty($parsed['layout']), 'checks' => $checks);
+        return array('score' => $score, 'ok' => $score >= 50 && $layout_convertible, 'checks' => $checks);
     }
 
     private function normalize_ai_package_result($data, $source_package = array()) {
@@ -2307,6 +2310,9 @@ class DiviForge_Admin {
         $job_id = !empty($_GET['job_id']) ? sanitize_text_field(wp_unslash($_GET['job_id'])) : $this->latest_ai_job_id();
         $job = $job_id ? $this->get_ai_job($job_id) : array();
         $this->header(__('AI Preview', 'diviforge'), __('Review generated AI output, validate the package structure, compare intent and approve only when it is safe.', 'diviforge'), 'ai-preview');
+        if (!empty($_GET['ai_notice']) && sanitize_key($_GET['ai_notice']) === 'import_failed') {
+            echo '<div class="notice notice-error inline"><p>' . esc_html__('This AI result could not be applied to the page. Check the validation panel below for the exact reason - usually the layout could not be converted, so nothing was changed.', 'diviforge') . '</p></div>';
+        }
         if (!$job) {
             echo '<section class="df-card df-empty-state"><span class="dashicons dashicons-visibility"></span><h2>' . esc_html__('No AI preview yet', 'diviforge') . '</h2><p>' . esc_html__('Run Generate with AI from AI Studio to create a preview job.', 'diviforge') . '</p><a class="df-btn df-btn-primary" href="' . esc_url(admin_url('admin.php?page=diviforge-ai-studio')) . '">' . esc_html__('Open AI Studio', 'diviforge') . '</a></section>';
             $this->footer();
@@ -2519,9 +2525,11 @@ class DiviForge_Admin {
         if (!$page_id || !current_user_can('edit_post', $page_id)) { wp_die(esc_html__('You are not allowed to edit this page.', 'diviforge')); }
         $parsed = !empty($job['parsed']) ? $job['parsed'] : $this->parse_ai_package_response($job['response'] ?? '');
         $validation = $this->validate_ai_package_result($parsed);
-        if (empty($validation['ok'])) { wp_die(esc_html__('AI result is not valid enough to import.', 'diviforge')); }
-        $content = DiviForge_Importer::layout_to_divi_shortcodes($parsed['layout']);
-        if ($content === '') { wp_die(esc_html__('AI layout could not be converted to Divi shortcodes.', 'diviforge')); }
+        $content = empty($validation['ok']) ? '' : DiviForge_Importer::layout_to_divi_shortcodes($parsed['layout']);
+        if ($content === '') {
+            wp_safe_redirect(add_query_arg(array('page' => 'diviforge-ai-preview', 'job_id' => $job_id, 'ai_notice' => 'import_failed'), admin_url('admin.php')));
+            exit;
+        }
         wp_update_post(array('ID' => $page_id, 'post_content' => $content));
         update_post_meta($page_id, '_et_pb_use_builder', 'on');
         if (isset($parsed['page.css'])) { DiviForge_CSS_Importer::apply_to_page($page_id, (string)$parsed['page.css'], 'ai_result'); }
