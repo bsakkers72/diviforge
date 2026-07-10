@@ -45,17 +45,9 @@ The WordPress-native AI foundation is in place under `src/AI`, `src/Repository` 
 - AI provider contracts — done (`AiProviderInterface`, `AiProviderRegistry`, no concrete providers yet)
 - AI Jobs admin screen — done, shipped as a new page ("AI Request Log", `src/Admin/AiJobsScreen`) rather than rewiring the legacy `diviforge-ai-jobs` screen. See [ADR-002](../adr/ADR-002-AI-Jobs-UI.md) for why they stay separate.
 - OpenAI provider — done (`AI\Provider\OpenAi\OpenAiProvider`, reuses the existing `diviforge_ai_settings` option). See [ADR-003](../adr/ADR-003-OpenAI-Provider.md). No cost calculation yet.
-- AI Preview — done, but scoped narrowly: a raw prompt/response detail view for one job (`AiJobsScreen`), not a Divi layout preview. See [ADR-004](../adr/ADR-004-AI-Preview.md) — it flags an open product decision for Sprint 005 rather than guessing at it.
-
-## Open decision for Sprint 005
-
-"Package Builder" in the root README could mean two different things and needs a call from Barry before implementation:
-
-1. A generic page **export** package (per the original handover spec: `page.json`, `page.css`, `assets/`, `instructions.md`, `metadata.json` as a ZIP) — independent of the AI job model, living in `src/Export`/`src/Packages`.
-2. Extending `AiJob` to carry a parsed/validated Divi layout so the new AI engine can build an importable package directly from a job's response — which would start converging the new engine with the legacy AI Studio pipeline (see ADR-002, ADR-004).
-
-Not started until this is decided.
+- AI Preview — done, but scoped narrowly: a raw prompt/response detail view for one job (`AiJobsScreen`), not a Divi layout preview. See [ADR-004](../adr/ADR-004-AI-Preview.md).
+- Package Builder — no new code. The handover spec's export requirement is already satisfied by the existing `includes/` package export pipeline. `src/Export`/`src/Packages` stay empty until a concrete new-architecture consumer needs one. See [ADR-005](../adr/ADR-005-Package-Builder.md).
 
 ## Next step
 
-Sprint 005 (Package Builder) — blocked on the decision above.
+Roadmap 3.0's five sprints (000-005) are all resolved (implemented or explicitly deferred with a reason). Next work needs a new goal from Barry.
