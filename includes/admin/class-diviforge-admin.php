@@ -451,24 +451,29 @@ class DiviForge_Admin {
             'images' => $stats['images'] ?? 0,
             'css_rules' => $package['css_analysis']['rule_count'] ?? 0,
         );
+        // layout and page_css are the leading sources the AI must base its output on - keep
+        // them first so they survive the 85000-char truncation below on large pages. They
+        // used to be last, which meant the AI could lose the actual page content it needed
+        // to edit before ever seeing it, and would return a layout with no real content.
         $context = array(
             'manifest' => $package['manifest'],
+            'layout' => $package['layout'],
+            'page_css' => $package['css'],
             'statistics' => $package['statistics'],
             'semantic_structure' => $package['semantic_structure'],
             'design' => $package['design'],
             'class_map' => $package['class_map'],
             'builder_tree' => $package['builder_tree'],
-            'layout' => $package['layout'],
-            'page_css' => $package['css'],
         );
         $json = wp_json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         if (strlen($json) > 85000) {
-            $json = substr($json, 0, 85000) . "\n\n[Context truncated by DiviForge v3.4 to keep the API request manageable. Use builder_tree, layout and page_css as leading sources.]";
+            $json = substr($json, 0, 85000) . "\n\n[Context truncated by DiviForge v3.4 to keep the API request manageable. manifest, layout and page_css are placed first specifically so they survive this cut - treat them as the leading sources even if builder_tree or other exploratory context below was cut off.]";
         }
         return "You are DiviForge AI Studio. You receive a WordPress/Divi page package context.\n\n" .
             "Goal from the user:\n" . $request . "\n\n" .
             "Return ONLY a valid DiviForge import package as JSON with these top-level keys:\n" .
             "manifest, layout, page_css, change_summary, validation_notes.\n\n" .
+            "The \"layout\" key is REQUIRED and MUST be an object with a \"divi_content\" field: a single string containing the complete, valid Divi shortcode markup for the entire updated page (the same format as layout.divi_content in the package context below - e.g. [et_pb_section][et_pb_row][et_pb_column type=\"4_4\"][et_pb_text]...[/et_pb_text][/et_pb_column][/et_pb_row][/et_pb_section]). This is the only field DiviForge actually imports - a response without layout.divi_content cannot be applied to the page, no matter how good the rest of the JSON is. Do not replace it with only a \"sections\"/\"builder_tree\"-style structured object, and do not leave layout empty or metadata-only.\n\n" .
             "Important rules:\n" .
             "- Use Divi-compatible sections, rows, columns and modules.\n" .
             "- Preserve useful CSS classes where possible.\n" .
