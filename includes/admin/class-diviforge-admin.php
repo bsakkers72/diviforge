@@ -210,6 +210,9 @@ class DiviForge_Admin {
         }
         if (!empty($_GET['css_reapplied'])) { echo '<div class="notice notice-success inline"><p>' . esc_html__('Stored CSS has been re-applied to Divi Page Custom CSS.', 'diviforge') . '</p></div>'; }
         if (!empty($_GET['page_deleted'])) { echo '<div class="notice notice-success inline"><p>' . esc_html__('The page has been moved to the trash.', 'diviforge') . '</p></div>'; }
+        if (!empty($_GET['df_limit_reached'])) {
+            echo '<div class="notice notice-warning inline"><p>' . esc_html__('DiviForge Free supports up to 3 pages. Upgrade to a license to import more.', 'diviforge') . '</p></div>';
+        }
     }
 
     /**
@@ -342,7 +345,7 @@ class DiviForge_Admin {
         echo '</div>';
         echo '<label class="df-field df-kicker-spaced"><span>' . esc_html__('Vraag aan AI', 'diviforge') . '</span><textarea name="chatgpt_request" rows="7" placeholder="' . esc_attr__('Bijvoorbeeld: Verbeter de hero-slider, gebruik meer premium spacing en behoud de bestaande Divi-structuur.', 'diviforge') . '"></textarea></label>';
         echo '<div class="df-context-box"><strong>' . esc_html__('Context die wordt meegestuurd', 'diviforge') . '</strong><label><input type="checkbox" checked disabled> Builder Tree</label><label><input type="checkbox" checked disabled> Page CSS + CSS analyse</label><label><input type="checkbox" checked disabled> Assets + media manifest</label><label><input type="checkbox" checked disabled> Design tokens</label><label><input type="checkbox" checked disabled> Page metadata + history context</label></div>';
-        echo '<div class="df-ai-action-row"><button class="df-btn df-btn-soft df-ai-submit" type="submit"><span class="dashicons dashicons-download"></span>' . esc_html__('Download AI package', 'diviforge') . '</button><button class="df-btn df-btn-primary df-ai-submit" type="submit" formaction="' . esc_url(admin_url('admin-post.php')) . '" name="action" value="diviforge_ai_improve"><span class="dashicons dashicons-superhero"></span>' . esc_html__('Generate with AI', 'diviforge') . '</button></div>';
+        echo '<div class="df-ai-action-row"><button class="df-btn df-btn-soft df-ai-submit" type="submit"><span class="dashicons dashicons-download"></span>' . esc_html__('Download AI package', 'diviforge') . '</button><button class="df-btn df-btn-primary df-ai-submit df-ai-generate-btn" type="submit" formaction="' . esc_url(admin_url('admin-post.php')) . '" name="action" value="diviforge_ai_improve"><span class="dashicons dashicons-superhero"></span>' . esc_html__('Generate with AI', 'diviforge') . '</button></div>';
         echo '</form>';
         echo '<aside class="df-card df-ai-studio-side"><p class="df-kicker">' . esc_html__('AI provider status', 'diviforge') . '</p><h2>' . esc_html($has_key ? __('Provider configured', 'diviforge') : __('Provider not configured yet', 'diviforge')) . '</h2><p>' . esc_html($has_key ? sprintf(__('Provider: %s · Model: %s. Direct generation with preview is active. Every request creates a reviewable AI job.', 'diviforge'), $this->get_ai_provider_label($settings['provider']), $settings['model']) : __('Configure an AI provider in Settings to prepare direct AI workflows.', 'diviforge')) . '</p><div class="df-ai-next"><h3>' . esc_html__('AI Package Validator', 'diviforge') . '</h3><ul class="df-checks"><li>Builder Tree required</li><li>layout.json required</li><li>page.css exported when available</li><li>AI_REQUEST.json generated</li><li>Package history logged</li></ul><div class="df-quality-score"><span>' . esc_html__('Foundation readiness', 'diviforge') . '</span><strong>82%</strong></div><a class="df-btn df-btn-soft" href="' . esc_url(admin_url('admin.php?page=diviforge-settings')) . '"><span class="dashicons dashicons-admin-generic"></span>' . esc_html__('Open AI settings', 'diviforge') . '</a></div></aside>';
         echo '</div>';
@@ -1887,6 +1890,15 @@ class DiviForge_Admin {
         $mode = $target_page_id ? 'update' : 'new';
         if ($target_page_id && !current_user_can('edit_post', $target_page_id)) { wp_die(esc_html__('You are not allowed to update this page.', 'diviforge')); }
         $page_title = (!$target_page_id && !empty($_POST['page_title'])) ? sanitize_text_field(wp_unslash($_POST['page_title'])) : '';
+
+        if ($mode === 'new') {
+            $guard = DiviForge\Core\Bootstrap::instance()->container()->get(DiviForge\Licensing\PageLimitGuard::class);
+            if (!$guard->canCreateAnotherPage()) {
+                wp_safe_redirect(admin_url('admin.php?page=diviforge-pages&df_limit_reached=1'));
+                exit;
+            }
+        }
+
         $result = DiviForge_Importer::import_upload($_FILES['package'], $target_page_id, $page_title);
         if (is_wp_error($result)) { wp_die(esc_html($result->get_error_message())); }
         wp_safe_redirect(admin_url('admin.php?page=diviforge-pages&imported=1&mode=' . $mode . '&page_id=' . absint($result['post_id'])));
@@ -2138,7 +2150,7 @@ class DiviForge_Admin {
     }
 
     private function update_ai_jobs($jobs) {
-        update_option('diviforge_ai_jobs', array_slice(array_values($jobs), 0, 100), false);
+        update_option('diviforge_ai_jobs', array_slice($jobs, -100, null, true), false);
     }
 
     private function create_ai_job($data) {
@@ -2181,8 +2193,8 @@ class DiviForge_Admin {
 
     private function latest_ai_job_id() {
         $jobs = $this->get_ai_jobs();
-        foreach ($jobs as $id => $job) { return $id; }
-        return '';
+        $id = array_key_last($jobs);
+        return $id !== null ? $id : '';
     }
 
     private function extract_json_from_ai_text($text) {
