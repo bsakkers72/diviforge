@@ -7,7 +7,7 @@ Create of WP plugin DiviForge.
 - `main` contains stable releases.
 - `develop` contains the next release.
 - `feature/*` branches contain one focused feature or sprint.
-- Every version bump stamps a build date and time into the version string (`diviforge.php` header `Version:` and the `DIVIFORGE_VERSION` constant), format `<semver>-YYYYMMDD-HHMM`, e.g. `3.5.0-dev-20260709-2315`. This makes it possible to tell exactly which build is installed when testing multiple ZIPs.
+- Version numbers follow semver and actually increment (`diviforge.php` header `Version:` and the `DIVIFORGE_VERSION` constant): bump the patch number for bug fixes, minor for new backward-compatible features/sprints, major for breaking changes. A build date and time is stamped on top for exact build identification, format `<semver>-YYYYMMDD-HHMM`, e.g. `3.5.1-dev-20260711-0900`. This makes it possible both to see what kind of change shipped and to tell exactly which build is installed when testing multiple ZIPs.
 
 ## Roadmap 3.0
 
